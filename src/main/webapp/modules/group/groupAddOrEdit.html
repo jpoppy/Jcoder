@@ -1,0 +1,71 @@
+<div id="groupAddOrEdit" class="tabbable">
+	<ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-pencil-square-o bigger-120"></i>
+                基本信息
+            </a>
+        </li>
+    </ul>
+	<div class="tab-content" style="height:350px;">
+        <div id="home" class="tab-pane fade in active">
+            <div class="row">
+                <div class="col-xs-12">
+                    <!-- PAGE CONTENT BEGINS -->
+                    <form class="form-horizontal" id="validation-form" role="form">
+
+						<div class="form-group" style="margin-top:10px;margin-left:10px;">
+							<label v-for="hostPort in hosts" >
+								<input name="form-field-checkbox" type="checkbox" class="ace" checked>
+								<span class="lbl">{{hostPort}}</span>&nbsp;&nbsp;&nbsp;
+							</label>
+						</div>
+                        <div class="form-group" style="margin-top:10px;">
+						    <label class="col-sm-3 control-label no-padding-left">GroupName</label>
+						    <div class="clearfix ">
+						      <input type="text" name="name" placeholder="请输入GroupName"  class="col-xs-8" v-model="item.name">
+						    </div>
+						</div>
+
+                    </form>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" >
+var groupAddOrEdit = new Vue({
+  el: '#groupAddOrEdit',
+  data: {
+    hosts: [],
+    item: {},
+    hostPorts:[]
+
+  },
+  mounted:function(){
+  	this.hostList() ;
+  },
+  methods:{
+	hostList:function(){
+		var $this = this;
+		Jcoder.ajax('/admin/group/hostList', 'post',null,null).then(function (data) {
+			JqdeBox.unloading();
+			if(data.ok){
+			  $this.hosts = data.obj;
+				return false;
+		  }
+		});
+	},
+	hostArray: function () {
+		 var $this = this;
+		 var len = $(":checkbox").length ;
+		 for(var i =0 ;i<len ;i++){
+		 	if($(":checkbox")[i].checked==true){
+				$this.hostPorts.push($this.hosts[i]);
+		 	}
+		 }
+	 },
+  }
+});
+</script>

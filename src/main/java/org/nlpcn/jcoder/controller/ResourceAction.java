@@ -38,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @IocBean
-@Filters(@By(type = AuthoritiesManager.class, args = { "userType", "1", "/login.jsp" }))
+@Filters(@By(type = AuthoritiesManager.class))
 public class ResourceAction {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ResourceAction.class) ;
@@ -63,12 +63,12 @@ public class ResourceAction {
 		}
 
 		if (!file.getAbsolutePath().startsWith(RESOURCE_ROOT.getAbsolutePath())) {
-			result.add(new FileInfo(RESOURCE_ROOT, "DoNotPlayFire"));
+			result.add(new FileInfo(RESOURCE_ROOT));
 			return result;
 		}
 
 		if (!file.equals(RESOURCE_ROOT)) {
-			result.add(new FileInfo(file.getParentFile(), "../"));
+			result.add(new FileInfo(file.getParentFile()));
 		}
 
 		File[] files = file.listFiles();

@@ -29,7 +29,7 @@ import org.nutz.mvc.upload.TempFile;
 import org.nutz.mvc.upload.UploadAdaptor;
 
 @IocBean
-@Filters(@By(type = AuthoritiesManager.class, args = { "userType", "1", "/login.jsp" }))
+@Filters(@By(type = AuthoritiesManager.class))
 public class SystemAction {
 
 	@At("/system")
@@ -73,9 +73,9 @@ public class SystemAction {
 
 		for (TempFile tempFile : fileList) {
 			try (InputStreamReader reader = new InputStreamReader(tempFile.getInputStream())) {
-				String restore = backupService.restore(reader);
-				sb.append(restore);
-				sb.append("\n");
+//				String restore = backupService.restore(reader);
+//				sb.append(restore);
+//				sb.append("\n");
 			}
 		}
 		List<Group> groups = StaticValue.systemDao.search(Group.class, Cnd.NEW());

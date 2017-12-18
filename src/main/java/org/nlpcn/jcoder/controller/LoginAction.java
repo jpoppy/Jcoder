@@ -38,6 +38,7 @@ import com.alibaba.fastjson.JSONObject;
 
 @IocBean
 @Filters(@By(type = IpErrorCountFilter.class, args = { "20" }))
+@Ok("json")
 public class LoginAction {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LoginAction.class);
@@ -45,7 +46,6 @@ public class LoginAction {
 	public BasicDao basicDao = StaticValue.systemDao;
 
 	@At("/admin/login")
-	@Ok("json")
 	public Restful login(HttpServletRequest req, HttpServletResponse resp, @Param("name") String name, @Param("password") String password) throws Throwable {
 		JSONObject restful = new JSONObject();
 		Condition con = Cnd.where("name", "=", name);
@@ -57,31 +57,13 @@ public class LoginAction {
 			restful.put("userType", user.getType());
 			
 			HttpSession session = Mvcs.getHttpSession();
-			session.setAttribute("user", name);
-			session.setAttribute("userId", user.getId());
-			session.setAttribute("userType", user.getType());
-			Condition co = null;
-			if (user.getType() != 1) {
-				List<UserGroup> userGroupList = basicDao.search(UserGroup.class, Cnd.where("userId", "=", user.getId()));
-				Long[] ids = new Long[userGroupList.size()];
-				Map<Long, Integer> authMap = new HashMap<>();
-				for (int i = 0; i < ids.length; i++) {
-					ids[i] = userGroupList.get(i).getGroupId();
-					authMap.put(ids[i], userGroupList.get(i).getAuth());
-				}
-				List<Group> GroupList = basicDao.search(Group.class, Cnd.where("id", "in", ids));
-				
-				restful.put("AUTH_MAP", authMap);
-				restful.put("GROUP_LIST", GroupList);
-				
-				session.setAttribute("AUTH_MAP", authMap);
-				session.setAttribute("GROUP_LIST", GroupList);
-			} else {
-				List<Group> groups = basicDao.search(Group.class, co);
-				restful.put("GROUP_LIST", groups);
-				session.setAttribute("GROUP_LIST", groups);
-			}
+			session.setAttribute("user", user);
+
 			LOG.info("user " + name + "login ok");
+
+			if(!StaticValue.IS_LOCAL) { //集群模式相互访问使用token
+				session.setAttribute("userToken", TokenService.regToken(user));
+			}
 
 			return Restful.OK.obj(restful) ;
 		} else {
@@ -144,13 +126,18 @@ public class LoginAction {
 	}
 
 	@At("/admin/loginOut")
-	@Ok("redirect:/admin/login.html")
+	@Ok("redirect:/login.html")
 	public void loginOut() {
 		HttpSession session = Mvcs.getHttpSession();
 		session.removeAttribute("user");
-		session.removeAttribute("authority");
-		session.removeAttribute("uGroups");
+		session.removeAttribute("userId");
 		session.removeAttribute("userType");
+		try {
+			StaticValue.space().removeToken(String.valueOf(session.getAttribute("userToken"))) ;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		session.removeAttribute("userToken");
 	}
 
 }
